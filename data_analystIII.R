@@ -19,11 +19,19 @@ data <- read.csv("DataforAnalystTask.csv", header = TRUE, na.strings=c("","NA"))
 
 # reading in data with two rows as header #
 
-header <- scan("202106_DataforAnalystTask.csv", nlines = 1, what = character())
-data2 <- read.csv("202106_DataforAnalystTask.csv", skip = 2, header = FALSE)
+# header <- scan("202106_DataforAnalystTask.csv", nlines = 1, what = character())
+# data2 <- read.csv("202106_DataforAnalystTask.csv", header = TRUE)
 
-# names(data2) <- header
-
+library(dplyr)
+library(tidyverse)
+# data2 <- data2 %>%
+#   mutate_if(sapply(data2, is.character), as.factor) # this works
+# 
+# # data2 <- subset(data2, select = -c(PseudoID))
+# data_questions <- data2 %>% 
+#   pivot_longer(cols = everything(), names_to = "var_name", values_to = "questions") 
+# 
+# write.csv(data_questions,"data_questions.csv", row.names = FALSE)
 ### change characters into factors
 # try to do it in a less dumb way
 library(dplyr)
@@ -285,12 +293,25 @@ dm = mutate(data, Graduate = (Career != 'UGRD')) #yay, this works
 dm2 <- subset(dm, select = -c(PseudoID))
 # create Students column
 levels(dm2$Graduate) <- list("TRUE" = "Graduate", "FALSE" = "Undergraduate")
-library(forcats)
 
 # create the variable for students
 dm2$Students <- as.factor(dm2$Graduate)
 is.factor(dm2$Students)
 dm2$Students <- recode_factor(dm2$Students, "TRUE" = "Graduate", "FALSE" = "Undergraduate") # this wroked
+
+# reclassify Acad.Class.Standing
+dm2$Class.Standing <- recode_factor(dm2$Acad.Class.Standing,
+                                         "Graduate" = "Grad&Prof", 
+                                         "Masters" = "Grad&Prof",
+                                         "Professional Year 1" = "Grad&Prof",
+                                         "Professional Year 2" = "Grad&Prof",
+                                         "Professional Year 3" = "Grad&Prof",
+                                         "Professional Year 4" = "Grad&Prof", 
+                                         "Doctoral" = "Grad&Prof",
+                                         "Freshmen" = "First_Year", 
+                                         "Sophomore" = "Sophomore",
+                                         "Junior" = "Junior", 
+                                         "Senior" = "Senior",) # this wroked
 
 # summarize and group by data
 # summarize(dm)
@@ -321,7 +342,7 @@ dm2 %>%
   dplyr::select(Honors.Flag, Graduate) %>% 
   filter(Graduate == FALSE) %>% head()
 
-able(dm2$Honors.Flag, dm2$Graduate)
+table(dm2$Honors.Flag, dm2$Graduate)
 
 # melt the data
 dm2_long <- melt(dm2) # using the function melt turn wide into long form
@@ -445,6 +466,7 @@ dm2$Q29_10 = factor(dm2$Q29_10,
 dm2 %>% 
   filter(Career != "UGRD") %>% 
   group_by(Q3) %>% 
+  # forcats::fct_explicit_na() %>% 
   summarize(mean_age = mean(Age)) # mean age of non-UGRD is 30.3
 
 # summary(dm2$Age)
@@ -524,14 +546,14 @@ print(longer_data)
 # print(bargraph0)
 
 # filter out the NA manually
-FB <- filter(dm2, Q11_1 == 'Facebook / Messenger') # 1599
-IG <- filter(dm2, Q11_4 == 'Instagram') #1779
-SC <- filter(dm2, Q11_5 == 'Snapchat') #1612
-SMS <- filter(dm2, Q11_6 == 'Text / SMS') #1991
-TW <- filter(dm2, Q11_7 == 'Twitter') # 995
-WC <- filter(dm2, Q11_8 == 'WeChat') # 100
-WA <- filter(dm2, Q11_9 == 'WhatsApp') # 623
-OT <- filter(dm2, Q11_10 == 'Other') #106
+# FB <- filter(dm2, Q11_1 == 'Facebook / Messenger') # 1599
+# IG <- filter(dm2, Q11_4 == 'Instagram') #1779
+# SC <- filter(dm2, Q11_5 == 'Snapchat') #1612
+# SMS <- filter(dm2, Q11_6 == 'Text / SMS') #1991
+# TW <- filter(dm2, Q11_7 == 'Twitter') # 995
+# WC <- filter(dm2, Q11_8 == 'WeChat') # 100
+# WA <- filter(dm2, Q11_9 == 'WhatsApp') # 623
+# OT <- filter(dm2, Q11_10 == 'Other') #106
 
 # # this bar graph includes counts from Q11 
 # # use this with no NA
@@ -756,3 +778,4 @@ dm2$Q18_7 <- recode_factor(dm2$Q18_7, "Course grades" = "Grades")
 
 #### analyze bargraph5 Q29 with proportions
 bargraph5 <- bargraph5 %>% select(!is.na("Fin Aid"))
+

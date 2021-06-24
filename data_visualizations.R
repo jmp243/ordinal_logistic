@@ -808,3 +808,6 @@ bargraph0g <- bargraph0g + labs(title = "How effective are UArizona's Systems?",
                                 subtitle = "") 
 print(bargraph0g)
 
+# density plot for age
+density_age <- density(dm2$Age)
+plot(density_age)
